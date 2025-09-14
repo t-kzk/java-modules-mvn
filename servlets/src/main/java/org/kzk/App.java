@@ -5,8 +5,6 @@ import org.apache.catalina.Context;
 import org.apache.catalina.LifecycleException;
 import org.apache.catalina.Wrapper;
 import org.apache.catalina.startup.Tomcat;
-import org.kzk.demo.FileUploadServlet;
-import org.kzk.demo.TestServlet;
 import org.kzk.service.WriterService;
 import org.kzk.servlets.FileServlet;
 
@@ -24,22 +22,19 @@ public class App {
         tomcat.setPort(9595);
         tomcat.getConnector();
 
-        // ВАЖНО: создаем временную директорию для Tomcat
+        // Временная директория для томкат
         File tempDir = Files.createTempDirectory("tomcat-").toFile();
         tempDir.deleteOnExit();
 
-        // 1. Создаем временный контекст БЕЗ webapp папки
+        // Создание временного контекста БЕЗ webapp папки (папку можно и добавить если тянуть из нее вьюшки)
         Context ctx = tomcat.addContext("", tempDir.getAbsolutePath());
 
-        // 2. РЕГИСТРИРУЕМ СЕРВЛЕТ ЧЕРЕЗ КОД (без web.xml!)
-        Tomcat.addServlet(ctx, "fileUploadServlet", new FileUploadServlet());
-        ctx.addServletMappingDecoded("/upload", "fileUploadServlet");
-
-        // 3. Добавляем тестовый сервлет
+        // регистрация сервлета
         Tomcat.addServlet(ctx, "loginWriter", new WriterService());
         ctx.addServletMappingDecoded("/login", "loginWriter");
         ctx.addServletMappingDecoded("", "loginWriter"); // корневой путь
 
+        // регистрация сервлета + ручная настройка загрузки файлов
         Wrapper wrapper = Tomcat.addServlet(ctx, "fileServlet", new FileServlet());
         wrapper.setMultipartConfigElement(
                 new MultipartConfigElement(System.getProperty("java.io.tmpdir"),
@@ -51,11 +46,11 @@ public class App {
 
 
 
-        // 4. Запускаем
+        // Запуск
         tomcat.start();
-        System.out.println("✅ Tomcat started: http://localhost:9595");
-        System.out.println("📁 Upload: http://localhost:9595/upload");
-        System.out.println("🔧 Test: http://localhost:9595/test");
+        System.out.println("Tomcat started: http://localhost:9595");
+        System.out.println("Upload: http://localhost:9595/api/files");
+        System.out.println("Login: http://localhost:9595/login");
 
         tomcat.getServer().await();
 
