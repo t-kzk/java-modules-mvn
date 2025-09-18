@@ -5,8 +5,12 @@ import org.apache.catalina.Context;
 import org.apache.catalina.LifecycleException;
 import org.apache.catalina.Wrapper;
 import org.apache.catalina.startup.Tomcat;
+import org.apache.tomcat.util.descriptor.web.FilterDef;
+import org.apache.tomcat.util.descriptor.web.FilterMap;
+import org.kzk.filter.AuthFilter;
 import org.kzk.service.WriterService;
 import org.kzk.servlets.FileServlet;
+import org.kzk.servlets.WriterServlet;
 
 import java.io.File;
 import java.io.IOException;
@@ -30,7 +34,7 @@ public class App {
         Context ctx = tomcat.addContext("", tempDir.getAbsolutePath());
 
         // регистрация сервлета
-        Tomcat.addServlet(ctx, "loginWriter", new WriterService());
+        Tomcat.addServlet(ctx, "loginWriter", new WriterServlet());
         ctx.addServletMappingDecoded("/login", "loginWriter");
         ctx.addServletMappingDecoded("", "loginWriter"); // корневой путь
 
@@ -44,6 +48,16 @@ public class App {
         );
         ctx.addServletMappingDecoded("/api/files/*", "fileServlet");
 
+        // регистрация фильтра
+        FilterDef authDef = new FilterDef();
+        authDef.setFilterName("authFilter");
+        authDef.setFilter(new AuthFilter());
+        ctx.addFilterDef(authDef);
+
+        FilterMap authMap = new FilterMap();
+        authMap.setFilterName("authFilter");
+        authMap.addURLPattern("/api/files/*");
+        ctx.addFilterMap(authMap);
 
 
         // Запуск

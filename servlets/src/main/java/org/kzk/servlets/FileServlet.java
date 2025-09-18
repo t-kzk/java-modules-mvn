@@ -61,8 +61,8 @@ public class FileServlet extends HttpServlet {
             resp.setContentType("application/json");
             om.writeValue(resp.getOutputStream(), event);
         } catch (Exception e) {
-            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            resp.getWriter().write("Error: " + e.getMessage());
+            //  resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            // resp.getWriter().write("Error: " + e.getMessage());
         }
     }
 
@@ -92,20 +92,8 @@ public class FileServlet extends HttpServlet {
      * Если сессии нет или пользователь не найден, возвращает null.
      */
     private Writer getCurrentUser(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        HttpSession session = req.getSession(false); // не создаём новую сессию
-        if (session == null) {
-            resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            resp.getWriter().write("Нет сессии, пожалуйста залогиньтесь");
-            return null;
-        }
-
+        HttpSession session = req.getSession(false);
         Writer writer = (Writer) session.getAttribute("user");
-        if (writer == null) {
-            resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            resp.getWriter().write("Сессия есть, но пользователь не найден");
-            return null;
-        }
-
         return writer;
     }
 }
