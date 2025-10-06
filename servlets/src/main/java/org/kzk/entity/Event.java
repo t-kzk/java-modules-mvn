@@ -1,7 +1,10 @@
 package org.kzk.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 
 import java.util.Objects;
 
@@ -20,6 +23,7 @@ public class Event {
 
     @ManyToOne (fetch = FetchType.LAZY)
     @JoinColumn(name = "writer_id")
+    @JsonBackReference
     private Writer writer;
 
     @ManyToOne (fetch = FetchType.LAZY)

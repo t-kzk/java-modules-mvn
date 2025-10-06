@@ -41,4 +41,11 @@ public class FileRepositoryImpl extends JpaService implements FilesRepository {
                 select f from FileE f
                 """, FileE.class).getResultList();
     }
+
+    @Override
+    public FileE findByName(String fileName) {
+        return em.createQuery("""
+                select f from FileE f where f.name = :fileName
+                """, FileE.class).setParameter("fileName", fileName).getSingleResult();
+    }
 }

@@ -5,16 +5,15 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
-import org.kzk.entity.Event;
 import org.kzk.entity.FileE;
 import org.kzk.entity.Writer;
-import org.kzk.service.EventService;
 import org.kzk.service.FileService;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @WebServlet(name = "FileServlet", urlPatterns = {"/api/files/*"})
 @MultipartConfig(
@@ -25,13 +24,11 @@ import java.util.List;
 public class FileServlet extends HttpServlet {
 
     private FileService fileService;
-    private EventService eventService;
     private ObjectMapper om;
 
     @Override
     public void init() throws ServletException {
         fileService = new FileService();
-        eventService = new EventService();
         om = new ObjectMapper();
     }
 
@@ -55,14 +52,14 @@ public class FileServlet extends HttpServlet {
         String originalName = filePart.getSubmittedFileName();
         try {
             // Сохраняем файл на диск + запись в БД
-            FileE saved = fileService.createFile(originalName, filePart.getInputStream());
-            Event event = eventService.createEvent(currentUser, saved);
+            FileE saved = fileService.createFile(originalName, currentUser, filePart.getInputStream());
+
             // Отправляем обратно JSON с метаданными
             resp.setContentType("application/json");
-            om.writeValue(resp.getOutputStream(), event);
+            om.writeValue(resp.getOutputStream(), saved);
         } catch (Exception e) {
-            //  resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            // resp.getWriter().write("Error: " + e.getMessage());
+            resp.setStatus(HttpServletResponse.SC_CONFLICT);
+            resp.getWriter().write("Error:  the file is exist " + e.getMessage());
         }
     }
 
@@ -76,15 +73,45 @@ public class FileServlet extends HttpServlet {
      */
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        String pathInfo = req.getPathInfo(); // пример: "/5" или null
+        String pathInfo = req.getPathInfo(); // "/{fileId}" или null
         if (pathInfo == null || pathInfo.equals("/")) {
             // Вернуть список файлов
-            List<FileE> files = new ArrayList<>();
+            List<FileE> files = fileService.findAll();
             resp.setContentType("application/json");
             om.writeValue(resp.getOutputStream(), files);
             return;
+        } else {
+            String fileId = pathInfo.replace("/", "");
+
+            Optional<FileE> byId = fileService.findById(Integer.valueOf(fileId));
+
+            if (byId.isPresent()) {
+                FileE file = byId.get();
+                Path filePath = fileService.getFilePath(file.getFilePath());
+
+                if (Files.exists(filePath)) {
+                    // необходимые хэдеры для браузера, например
+                    resp.setContentType("application/octet-stream"); // атрибут бинарности
+                    resp.setHeader("Content-Disposition",
+                            "attachment; filename=\"" + file.getName() + "\""); // предложение скачать
+                    resp.setContentLengthLong(Files.size(filePath)); // инф о размере файла
+
+                    // Отправляем файл (файл в стрим resp)
+                    Files.copy(filePath, resp.getOutputStream());
+                } else {
+                    resp.sendError(HttpServletResponse.SC_NOT_FOUND, "Error:  file not found!");
+
+                }
+            } else {
+                resp.sendError(HttpServletResponse.SC_NOT_FOUND, "Error:  file not found!");
+            }
         }
 
+    }
+
+    @Override
+    protected void doPatch(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        super.doPatch(req, resp);
     }
 
     /**

@@ -31,12 +31,13 @@ public class AuthFilter implements Filter {
 
         if (session == null) {
             resp.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Нет сессии, пожалуйста залогиньтесь");
+            return;
         } else {
             Writer writer = (Writer) session.getAttribute("user");
             Optional<Writer> byName = writerService.findByName(writer.getUsername());
             if (byName.isEmpty()) {
                 resp.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Нет сессии, пожалуйста залогиньтесь");
-
+                return;
             }
         }
 

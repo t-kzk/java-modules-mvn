@@ -1,5 +1,6 @@
 package org.kzk.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -26,6 +27,7 @@ public class Writer {
 
     @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE, mappedBy = "writer")
     @Builder.Default
+    @JsonManagedReference
     private List<Event> events = new ArrayList<>();
 
     @Override

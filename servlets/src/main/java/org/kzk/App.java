@@ -5,6 +5,7 @@ import org.apache.catalina.Context;
 import org.apache.catalina.LifecycleException;
 import org.apache.catalina.Wrapper;
 import org.apache.catalina.startup.Tomcat;
+import org.apache.log4j.BasicConfigurator;
 import org.apache.tomcat.util.descriptor.web.FilterDef;
 import org.apache.tomcat.util.descriptor.web.FilterMap;
 import org.kzk.filter.AuthFilter;
@@ -21,7 +22,7 @@ import java.nio.file.Files;
  */
 public class App {
     public static void main(String[] args) throws LifecycleException, IOException {
-
+        BasicConfigurator.configure();
         Tomcat tomcat = new Tomcat();
         tomcat.setPort(9595);
         tomcat.getConnector();
