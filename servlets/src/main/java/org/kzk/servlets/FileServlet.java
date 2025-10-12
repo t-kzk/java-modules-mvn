@@ -23,20 +23,15 @@ import java.util.Optional;
 )
 public class FileServlet extends HttpServlet {
 
-    private FileService fileService;
-    private ObjectMapper om;
-
-    @Override
-    public void init() throws ServletException {
-        fileService = new FileService();
-        om = new ObjectMapper();
-    }
+    private final FileService fileService = new FileService();
+    private final ObjectMapper om = new ObjectMapper();
 
     /**
      * POST /api/files
      * Загружает новый файл (multipart/form-data, поле "file").
      */
     @Override
+    //todo такие исключения пойдут в контейнер Tomcat, который покажет стандартную страницу ошибки 500
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException, ServletException {
         Writer currentUser = getCurrentUser(req, resp);
         if (currentUser == null) return;
@@ -72,7 +67,7 @@ public class FileServlet extends HttpServlet {
      * Возвращает сам файл для скачивания.
      */
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String pathInfo = req.getPathInfo(); // "/{fileId}" или null
         if (pathInfo == null || pathInfo.equals("/")) {
             // Вернуть список файлов
@@ -90,14 +85,8 @@ public class FileServlet extends HttpServlet {
                 Path filePath = fileService.getFilePath(file.getFilePath());
 
                 if (Files.exists(filePath)) {
-                    // необходимые хэдеры для браузера, например
-                    resp.setContentType("application/octet-stream"); // атрибут бинарности
-                    resp.setHeader("Content-Disposition",
-                            "attachment; filename=\"" + file.getName() + "\""); // предложение скачать
-                    resp.setContentLengthLong(Files.size(filePath)); // инф о размере файла
-
-                    // Отправляем файл (файл в стрим resp)
-                    Files.copy(filePath, resp.getOutputStream());
+                    resp.setStatus(200);
+                    resp.getWriter().write("http://localhost:9595//api/download/" + file.getFilePath());
                 } else {
                     resp.sendError(HttpServletResponse.SC_NOT_FOUND, "Error:  file not found!");
 
@@ -109,9 +98,27 @@ public class FileServlet extends HttpServlet {
 
     }
 
+    /**
+     * DELETE /api/files/{id}
+     * Удаляет файл + инф из БД
+     */
     @Override
-    protected void doPatch(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        super.doPatch(req, resp);
+    protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        String pathInfo = req.getPathInfo();
+
+        if (pathInfo == null || pathInfo.equals("/")) {
+            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "File id not exist");
+        } else {
+            String fileId = pathInfo.replace("/", "");
+
+            try {
+                int id = Integer.parseInt(fileId);
+                fileService.deleteFile(id);
+
+            } catch (NumberFormatException e) {
+                resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid file id: " + fileId);
+            }
+        }
     }
 
     /**

@@ -31,7 +31,7 @@ public class FileService {
 
         Path target = storageRoot.resolve(originalName);
         Files.createDirectories(storageRoot);
-        Files.copy(content, target, StandardCopyOption.COPY_ATTRIBUTES);
+        Files.copy(content, target, StandardCopyOption.REPLACE_EXISTING);
 
         FileE fileSave = FileE.builder()
                 .name(originalName)
@@ -40,28 +40,19 @@ public class FileService {
 
         FileE saved = filesRepository.save(fileSave);
         Event event = eventService.createEvent(currentUser, saved);
+
         return saved;
     }
 
-    public Event updateFile(
-            String originalName,
-            Writer currentUser,
-            InputStream content) throws IOException {
-        FileE byName = filesRepository.findByName(originalName);
-        Path target = storageRoot.resolve(originalName);
-        Files.createDirectories(storageRoot);
-        Files.copy(content, target, StandardCopyOption.REPLACE_EXISTING);
-        Event event = eventService.createEvent(currentUser, byName);
-        return event;
-    }
-
-    public boolean deleteFile(int fileId) {
+    public boolean deleteFile(int fileId) throws IOException {
         Optional<FileE> byId = filesRepository.findById(fileId);
 
         if (byId.isPresent()) {
             FileE fileForDel = byId.get();
+            filesRepository.delete(fileForDel);
+            Path filePath = this.getFilePath(fileForDel.getFilePath());
+            return Files.deleteIfExists(filePath);
 
-            return filesRepository.delete(fileForDel);
         } else {
             return false;
         }

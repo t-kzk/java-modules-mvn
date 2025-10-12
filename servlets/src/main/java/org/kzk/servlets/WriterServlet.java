@@ -13,12 +13,17 @@ import java.io.IOException;
 
 @WebServlet("/login")
 public class WriterServlet extends HttpServlet {
-    private WriterService writerService;
+    private final WriterService writerService = new WriterService();
 
 
     @Override
     public void init() {
-        writerService = new WriterService();
+        System.out.println("init WriterServlet");
+    }
+
+    @Override
+    public void destroy() {
+        System.out.println("destroy method WriterServlet");
     }
 
     /**
