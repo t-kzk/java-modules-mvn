@@ -8,10 +8,17 @@ import java.util.Optional;
 
 
 public class WriterService {
-    private final WritersRepository writersRepository = new WriterRepositoryImpl();
+    private final WritersRepository writersRepository;
 
+    public WriterService() {
+        writersRepository = new WriterRepositoryImpl();
+    }
 
-    public Writer computeIfAbsent(String name) {
+    public WriterService(WritersRepository writersRepository) {
+        this.writersRepository = writersRepository;
+    }
+
+    public Writer computeIfAbsentWriter(String name) {
         Optional<Writer> byName = writersRepository.findByName(name);
         Writer writer = byName.orElseGet(() -> {
             Writer build = Writer.builder()

@@ -125,7 +125,7 @@ public class FileServlet extends HttpServlet {
      * Получает текущего залогиненного пользователя из сессии.
      * Если сессии нет или пользователь не найден, возвращает null.
      */
-    private Writer getCurrentUser(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+    private Writer getCurrentUser(HttpServletRequest req, HttpServletResponse resp) {
         HttpSession session = req.getSession(false);
         Writer writer = (Writer) session.getAttribute("user");
         return writer;

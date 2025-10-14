@@ -9,7 +9,6 @@ import org.apache.log4j.BasicConfigurator;
 import org.apache.tomcat.util.descriptor.web.FilterDef;
 import org.apache.tomcat.util.descriptor.web.FilterMap;
 import org.kzk.filter.AuthFilter;
-import org.kzk.service.WriterService;
 import org.kzk.servlets.DownloadServlet;
 import org.kzk.servlets.FileServlet;
 import org.kzk.servlets.WriterServlet;

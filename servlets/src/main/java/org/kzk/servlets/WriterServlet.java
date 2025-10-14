@@ -1,6 +1,5 @@
 package org.kzk.servlets;
 
-import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -13,8 +12,12 @@ import java.io.IOException;
 
 @WebServlet("/login")
 public class WriterServlet extends HttpServlet {
-    private final WriterService writerService = new WriterService();
+    private final WriterService writerService;
 
+    public WriterServlet() {
+        writerService = new WriterService();
+        System.out.println("Constructor WriterServlet");
+    }
 
     @Override
     public void init() {
@@ -27,15 +30,15 @@ public class WriterServlet extends HttpServlet {
     }
 
     /**
-     *  Устанавливает куки существующему пользователю (создает сессию).
-     *  В случае отсутствия пользователя - создает его + устанавливает куки.
-     *  POST /login (multipart/form-data, поле "name").
+     * Устанавливает куки существующему пользователю (создает сессию).
+     * В случае отсутствия пользователя - создает его + устанавливает куки.
+     * POST /login (multipart/form-data, поле "name").
      */
     @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         //  Получаем часть "name" из формы
         String name = req.getParameter("name");
-        Writer writer = writerService.computeIfAbsent(name);
+        Writer writer = writerService.computeIfAbsentWriter(name);
 
         // Создание сессии - ассоциация с объектом writer
         HttpSession session = req.getSession(true);

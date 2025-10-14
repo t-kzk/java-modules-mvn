@@ -8,7 +8,15 @@ import org.kzk.repository.impl.EventRepositoryImpl;
 
 public class EventService {
 
-    EventsRepository eventsRepository = new EventRepositoryImpl();
+    private final EventsRepository eventsRepository;
+
+    public EventService() {
+        eventsRepository = new EventRepositoryImpl();
+    }
+
+    public EventService(EventsRepository eventsRepository) {
+        this.eventsRepository = eventsRepository;
+    }
 
     public Event createEvent(Writer writer, FileE fileE) {
         return eventsRepository.save(Event.builder()
