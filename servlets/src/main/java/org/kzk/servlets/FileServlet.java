@@ -15,7 +15,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 
-@WebServlet(name = "FileServlet", urlPatterns = {"/api/files/*"})
+@WebServlet(name = "FileServlet", urlPatterns = {"/api/v1/files/*"})
 @MultipartConfig(
         fileSizeThreshold = 1024 * 1024, // 1MB — в памяти, больше — во временный файл
         maxFileSize = 1024 * 1024 * 10, // 10MB

@@ -16,12 +16,20 @@ import java.util.Optional;
 
 public class FileService {
 
-    private final FilesRepository filesRepository = new FileRepositoryImpl();
+    private final FilesRepository filesRepository;
     private final Path storageRoot;
-    private final EventService eventService = new EventService();
+    private final EventService eventService;
 
     public FileService() {
         this.storageRoot = Path.of(System.getProperty("user.dir"));
+        this.filesRepository = new FileRepositoryImpl();
+        this.eventService = new EventService();
+    }
+
+    public FileService(FilesRepository filesRepository, Path storageRoot, EventService eventService) {
+        this.filesRepository = filesRepository;
+        this.storageRoot = storageRoot;
+        this.eventService = eventService;
     }
 
     public FileE createFile(
@@ -38,8 +46,10 @@ public class FileService {
                 .filePath(target.toString())
                 .build();
 
+
+        //todo transaction
         FileE saved = filesRepository.save(fileSave);
-        Event event = eventService.createEvent(currentUser, saved);
+        eventService.createEvent(currentUser, saved);
 
         return saved;
     }
